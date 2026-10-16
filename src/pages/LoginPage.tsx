@@ -1,9 +1,14 @@
-import { redirect, useLoaderData, type LoaderFunctionArgs } from "react-router-dom";
+import {
+  redirect,
+  useLoaderData,
+  type LoaderFunctionArgs,
+} from "react-router-dom";
 import { ensureLocalUser, setLocalUser } from "@/api/auth/useUser";
 import { getBotApiUrl, toLocalUser, type LoginResponse } from "@/api/auth";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { PageShell } from "@/layout/PageShell";
 import { AuthPrompt } from "@/domains/auth/AuthPrompt";
+import { consumeOAuthState } from "@/domains/auth/oauthState";
 
 type LoginLoaderData = {
   error: string;
@@ -27,13 +32,19 @@ async function login(code: string, userId: string): Promise<LoginResponse> {
   return (await response.json()) as LoginResponse;
 }
 
-export async function loginLoader(
-  { request }: LoaderFunctionArgs
-): Promise<Response | LoginLoaderData | null> {
+export async function loginLoader({
+  request,
+}: LoaderFunctionArgs): Promise<Response | LoginLoaderData | null> {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const user = ensureLocalUser();
   if (!code) return null;
+  if (!consumeOAuthState(url.searchParams.get("state"))) {
+    return {
+      error:
+        "Die Anmeldung ist abgelaufen oder gehört zu einem anderen Browserfenster. Bitte erneut anmelden.",
+    };
+  }
 
   try {
     const data = await login(code, user.id);

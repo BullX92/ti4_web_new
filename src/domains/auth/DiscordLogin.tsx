@@ -4,14 +4,35 @@ import { IconBrandDiscordFilled } from "@tabler/icons-react";
 import { config } from "@/config";
 import cx from "clsx";
 import hud from "@/shared/ui/hudChrome.module.css";
-
-const DISCORD_CLIENT_ID = "1428383113158856724";
-
-const DISCORD_OAUTH_URL = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(config.api.discordRedirectUri)}&scope=identify`;
+import { beginDiscordLogin } from "./oauthState";
+import { useState } from "react";
 
 /** A link-styled button that starts the Discord OAuth flow. */
 export function DiscordAuthButton(props: ButtonProps) {
-  return <Button component="a" href={DISCORD_OAUTH_URL} {...props} />;
+  const [error, setError] = useState("");
+  return (
+    <>
+      <Button
+        {...props}
+        disabled={!config.api.discordClientId || props.disabled}
+        onClick={() => {
+          try {
+            window.location.assign(beginDiscordLogin());
+          } catch {
+            setError(
+              "Die Anmeldung konnte nicht gestartet werden. Bitte erneut versuchen.",
+            );
+          }
+        }}
+      />
+      {!config.api.discordClientId && (
+        <small style={{ display: "block" }}>
+          Discord-Anmeldung ist noch nicht eingerichtet.
+        </small>
+      )}
+      {error && <small role="alert">{error}</small>}
+    </>
+  );
 }
 
 export function DiscordLogin() {

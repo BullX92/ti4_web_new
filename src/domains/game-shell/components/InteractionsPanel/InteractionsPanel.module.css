@@ -1,0 +1,125 @@
+.panel {
+  position: fixed;
+  z-index: 220;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  right: 8px;
+  width: min(360px, calc(100vw - 16px));
+  color: var(--ds-text, #f1f5ff);
+  background: var(--ds-surface, #171b28);
+  border: 1px solid #69768a;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px #0006;
+  font-size: 13px;
+}
+.panel summary {
+  padding: 11px 12px;
+  font-weight: 650;
+  cursor: pointer;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.body {
+  padding: 0 10px 10px;
+  max-height: min(52dvh, 500px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.body p {
+  margin: 6px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.toolbar span {
+  color: #bac4d6;
+  font-size: 12px;
+}
+.body button {
+  min-height: 44px;
+  border: 1px solid #6f819b;
+  border-radius: 6px;
+  padding: 7px 10px;
+  background: #28354a;
+  color: #f1f5ff;
+  font: inherit;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.body button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+.body button:focus-visible,
+.panel summary:focus-visible {
+  outline: 2px solid #8ac7ff;
+  outline-offset: 2px;
+}
+.message {
+  border-top: 1px solid #485165;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.actions button {
+  flex: 1 1 auto;
+}
+.result {
+  border-left: 3px solid #8ac7ff;
+  padding-left: 8px;
+  margin: 8px 0;
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  border-top: 1px solid #485165;
+  padding-top: 8px;
+  margin-top: 8px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form label {
+  font-weight: 600;
+}
+.form input,
+.form textarea,
+.form select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  background: #101623;
+  color: #f1f5ff;
+  border: 1px solid #6f819b;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 16px;
+}
+.form textarea {
+  resize: vertical;
+}
+.form select[multiple] {
+  min-height: 110px;
+}
+.form small {
+  color: #bac4d6;
+}
+@media (min-width: 768px) {
+  .panel {
+    bottom: 18px;
+    right: 18px;
+  }
+}

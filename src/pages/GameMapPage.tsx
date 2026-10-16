@@ -34,6 +34,7 @@ import { TabPanelSection } from "@/domains/game-shell/components/TabPanelSection
 import { APP_HEADER_HEIGHT } from "@/shared/ui/AppHeader";
 import { TabActiveContext } from "@/hooks/useIsTabActive";
 import { MobileHandSheet } from "@/domains/game-shell/components/SecretHand";
+import { InteractionsPanel } from "@/domains/game-shell/components/InteractionsPanel/InteractionsPanel";
 import { MobileEventsSheet } from "@/domains/game-shell/components/GameEventPanel";
 import { useSecretHandAccess } from "@/domains/game-shell/components/SecretHand/useSecretHandAccess";
 
@@ -134,6 +135,7 @@ function GameMapContent({ pannable, onShowOldUI }: ContentProps) {
       />
 
       <AppShell.Main>
+        <InteractionsPanel gameId={gameId} />
         <Box
           className={classes.mainBackground}
           mod={{ "channel-links": hasChannelLinks }}

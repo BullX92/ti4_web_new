@@ -2,6 +2,9 @@
 
 # dependencies
 /node_modules
+/.npm-cache
+/.playwright-cli
+/output/playwright
 /.pnp
 .pnp.js
 
@@ -35,3 +38,4 @@ public/tiles
 .idea/
 # Git worktrees
 .worktrees/
+/output/
