@@ -1,5 +1,12 @@
 /// <reference types="vite/client" />
 
+interface Window {
+  readonly __TI4_WRAPPER_CONFIG__?: {
+    readonly discordClientId?: string;
+    readonly discordRedirectUri?: string;
+  };
+}
+
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
   readonly VITE_BACKEND_PROXY_URL?: string;

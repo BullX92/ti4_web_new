@@ -64,16 +64,24 @@ function evaluate(path, globals, transform = (text) => text) {
   runInNewContext(compiled, { exports, URL, URLSearchParams, ...globals });
   return exports;
 }
-function configuration(env, origin = "https://ti4.example.test") {
+function configuration(env, origin = "https://ti4.example.test", runtime = {}) {
   return evaluate(
     "../src/config.ts",
     {
       env,
-      window: { location: { origin, protocol: new URL(origin).protocol } },
+      window: { location: { origin, protocol: new URL(origin).protocol }, __TI4_WRAPPER_CONFIG__: runtime },
     },
     (text) => text.replaceAll("import.meta.env", "env"),
   ).config;
 }
+test("container supplies only public OAuth settings without changing own-origin APIs", () => {
+  const runtime = { discordClientId: "1234567890", discordRedirectUri: "https://own.example.test/login" };
+  const configured = configuration({ DEV: false, VITE_DISCORD_CLIENT_ID: "build-id" }, "https://own.example.test", runtime);
+  assert.equal(configured.api.discordClientId, runtime.discordClientId);
+  assert.equal(configured.api.discordRedirectUri, runtime.discordRedirectUri);
+  assert.equal(configured.api.botApiUrl, "/api");
+  assert.equal(configured.api.websocketUrl, "wss://own.example.test/ws");
+});
 function oauth(now = Date.now()) {
   const entries = new Map();
   const sessionStorage = {
