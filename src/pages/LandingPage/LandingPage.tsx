@@ -1,30 +1,64 @@
-import { useCommunityStats } from "@/api/useCommunityStats";
+import { Link } from "react-router-dom";
+import { IconBrandDiscordFilled } from "@tabler/icons-react";
+import { useUser } from "@/api/auth/useUser";
+import { Button } from "@/ds";
+import { DiscordAuthButton } from "@/domains/auth/DiscordLogin";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { PageShell } from "@/layout/PageShell";
-import {
-  BanAppealsSection,
-  CommunitySection,
-  FactionStrip,
-  FeaturesSection,
-  GamesInProgressSection,
-  HeroSection,
-  HowItWorksSection,
-} from "./LandingSections";
-import classes from "./LandingPage.module.css";
+import classes from "./OwnLandingPage.module.css";
 
 export default function LandingPage() {
-  useDocumentTitle("AsyncTI4 · Twilight Imperium over Discord");
-  const communityStatsQuery = useCommunityStats();
+  useDocumentTitle("Eigene Partien · AsyncTI4");
+  const { user } = useUser();
 
   return (
     <PageShell footer mainClassName={classes.page}>
-      <HeroSection query={communityStatsQuery} />
-      <FactionStrip />
-      <HowItWorksSection />
-      <FeaturesSection />
-      <GamesInProgressSection query={communityStatsQuery} />
-      <CommunitySection />
-      <BanAppealsSection />
+      <div className={classes.wrap}>
+        <section className={classes.entry} aria-labelledby="own-games-title">
+          <span className={classes.label}>Eigener Spielserver</span>
+          <h1 id="own-games-title">Deine Twilight-Imperium-Partien</h1>
+          <p>
+            Öffne eure Partien auf diesem Server. Melde dich mit dem
+            Discord-Konto an, mit dem du auch in eurer Partie spielst.
+          </p>
+          {user?.authenticated && (
+            <p className={classes.account}>
+              Angemeldet{user.name ? ` als ${user.name}` : " mit Discord"}.
+            </p>
+          )}
+          <div className={classes.actions}>
+            {user?.authenticated ? (
+              <Button component={Link} to="/dashboard" size="md">
+                Meine Partien
+              </Button>
+            ) : (
+              <DiscordAuthButton
+                size="md"
+                color="var(--ds-discord)"
+                leftSection={<IconBrandDiscordFilled size={16} />}
+              >
+                Mit Discord anmelden
+              </DiscordAuthButton>
+            )}
+            <Button component={Link} to="/games" size="md" variant="default">
+              Partien ansehen
+            </Button>
+          </div>
+        </section>
+        <section className={classes.help} aria-labelledby="getting-started-title">
+          <h2 id="getting-started-title">Noch keine eigene Partie?</h2>
+          <p>
+            Die Einrichtung neuer Partien und die Bedienung des vorhandenen
+            Milty-Drafts werden hier noch ergänzt. Bereits angelegte Partien
+            kannst du unter „Meine Partien“ öffnen.
+          </p>
+          <p>
+            Beispiel: Nutze für die Anmeldung dasselbe Discord-Konto, dem dein
+            Sitz in der Partie gehört. So werden dir deine privaten Karten und
+            angebotenen Aktionen zugeordnet.
+          </p>
+        </section>
+      </div>
     </PageShell>
   );
 }

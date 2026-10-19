@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch, getBotApiUrl } from "@/api/auth";
 import { useUser } from "@/api/auth/useUser";
 import { DiscordAuthButton } from "@/domains/auth/DiscordLogin";
+import { secureRandomId } from "@/utils/secureRandomId";
 import styles from "./InteractionsPanel.module.css";
 import {
   modalProblem,
@@ -126,7 +127,7 @@ function SeatActions({ gameId, userId }: { gameId: string; userId: string }) {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ requestId: crypto.randomUUID(), ...payload }),
+          body: JSON.stringify({ requestId: secureRandomId(), ...payload }),
         },
       );
       const next = await readResponse<ActionResult>(response);

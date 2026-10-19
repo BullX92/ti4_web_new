@@ -100,7 +100,9 @@ function oauth(now = Date.now()) {
       },
       sessionStorage,
       Date: { now: () => now },
-      crypto: { randomUUID: () => "random-state" },
+      require: () => evaluate("../src/utils/secureRandomId.ts", {
+        crypto: { getRandomValues: (bytes) => bytes.fill(0xab) },
+      }),
     },
     (text) => text.replace(/^import .*;\r?\n/m, ""),
   );
@@ -133,9 +135,30 @@ test("OAuth binds callback to one matching session state", () => {
   const auth = oauth();
   const url = new URL(auth.beginDiscordLogin());
   assert.equal(url.searchParams.get("client_id"), "own-client");
-  assert.equal(url.searchParams.get("state"), "random-state");
-  assert.equal(auth.consumeOAuthState("random-state"), true);
-  assert.equal(auth.consumeOAuthState("random-state"), false);
+  const state = "ab".repeat(32);
+  assert.equal(url.searchParams.get("state"), state);
+  assert.equal(auth.consumeOAuthState(state), true);
+  assert.equal(auth.consumeOAuthState(state), false);
+});
+
+test("LAN HTTP creates secure identifiers without crypto.randomUUID", () => {
+  let requestedBytes = 0;
+  const { secureRandomId } = evaluate("../src/utils/secureRandomId.ts", {
+    crypto: {
+      getRandomValues(bytes) {
+        requestedBytes = bytes.length;
+        return bytes.map((_, index) => index);
+      },
+    },
+  });
+  assert.equal(secureRandomId(), Array.from({ length: 32 }, (_, index) =>
+    index.toString(16).padStart(2, "0")).join(""));
+  assert.equal(requestedBytes, 32);
+});
+
+test("secure identifiers fail closed when secure randomness is unavailable", () => {
+  const { secureRandomId } = evaluate("../src/utils/secureRandomId.ts", { crypto: {} });
+  assert.throws(() => secureRandomId());
 });
 test("OAuth refuses missing, mismatched and malformed state", () => {
   const auth = oauth();

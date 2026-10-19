@@ -1,4 +1,5 @@
 import { config } from "@/config";
+import { secureRandomId } from "@/utils/secureRandomId";
 
 const STATE_KEY = "own-ti4-oauth-state";
 const MAX_AGE = 10 * 60 * 1000;
@@ -7,7 +8,7 @@ export function beginDiscordLogin(): string {
   if (!config.api.discordClientId) {
     throw new Error("Discord-Anmeldung ist noch nicht eingerichtet.");
   }
-  const state = crypto.randomUUID();
+  const state = secureRandomId();
   sessionStorage.setItem(
     STATE_KEY,
     JSON.stringify({ state, createdAt: Date.now() }),

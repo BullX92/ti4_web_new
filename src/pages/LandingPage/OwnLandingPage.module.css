@@ -1,0 +1,83 @@
+.page {
+  background: var(--ds-ambient), transparent;
+}
+
+.wrap {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 24px 16px 32px;
+}
+
+.entry,
+.help {
+  padding: 20px;
+  background: var(--ds-deck);
+  border: 1px solid var(--ds-h14);
+  border-radius: var(--ds-radius-md);
+}
+
+.label {
+  composes: ds-label from global;
+}
+
+.entry h1 {
+  margin: 12px 0;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 7vw, 40px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--ds-ink-hi);
+  overflow-wrap: anywhere;
+}
+
+.entry p,
+.help p {
+  margin: 10px 0 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--ds-ink);
+}
+
+.entry .account {
+  color: var(--ds-ink-hi);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.actions > a,
+.actions > button {
+  min-height: 44px;
+}
+
+.actions > small {
+  flex-basis: 100%;
+  color: var(--ds-ink);
+}
+
+.help {
+  margin-top: 16px;
+}
+
+.help h2 {
+  margin: 0;
+  font-size: var(--text-title);
+  color: var(--ds-ink-hi);
+}
+
+@media (min-width: 48em) {
+  .wrap {
+    padding-top: 40px;
+  }
+
+  .entry,
+  .help {
+    padding: 24px;
+  }
+}
