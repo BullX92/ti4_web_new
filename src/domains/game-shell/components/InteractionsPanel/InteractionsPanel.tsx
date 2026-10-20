@@ -23,6 +23,7 @@ type Offers = {
     channelId: string;
     content: string;
     actions: Action[];
+    images?: { name: string; url: string; description?: string | null }[];
   }[];
 };
 type ActionResult = {
@@ -249,6 +250,22 @@ function SeatActions({
               key={`${message.channelId}:${message.id}`}
             >
               {message.content && <p>{message.content}</p>}
+              {message.images?.map((image) => (
+                <figure className={styles.draftImage} key={image.url}>
+                  <img
+                    src={image.url}
+                    alt="Original-Milty-Slices"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                  {image.description && (
+                    <details>
+                      <summary>Original-Slice-Beschreibung</summary>
+                      <p>{image.description}</p>
+                    </details>
+                  )}
+                </figure>
+              ))}
               <div className={styles.actions}>
                 {message.actions.map((action) =>
                   action.type === "STRING_SELECT" ? (

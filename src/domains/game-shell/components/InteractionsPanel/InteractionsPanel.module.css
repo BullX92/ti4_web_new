@@ -11,6 +11,17 @@
   box-shadow: 0 4px 20px #0006;
   font-size: 13px;
 }
+.draftImage {
+  margin: 8px 0;
+}
+.draftImage img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.draftImage summary {
+  padding: 8px 0;
+}
 .panel summary {
   padding: 11px 12px;
   font-weight: 650;
