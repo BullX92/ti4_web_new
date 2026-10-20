@@ -4,6 +4,96 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 
+test("game creation keeps the same submitted request across reloads and isolates users", () => {
+  const api = evaluate("../src/domains/game-creation/creationRequest.ts", {});
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const request = {
+    requestId: "a".repeat(64),
+    title: "Dienstagsrunde",
+    memberIds: ["123"],
+  };
+  api.saveCreationRequest(storage, "123", request);
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(api.loadCreationRequest(storage, "123"))),
+    request,
+  );
+  assert.equal(api.loadCreationRequest(storage, "456"), null);
+  assert.throws(() =>
+    api.saveCreationRequest(storage, "123", {
+      ...request,
+      requestId: "b".repeat(64),
+    }),
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(api.loadCreationRequest(storage, "123"))),
+    request,
+  );
+  api.clearCreationRequest(storage, "123");
+  assert.equal(api.loadCreationRequest(storage, "123"), null);
+});
+
+test("game creation validates real selected members and owner before submission", () => {
+  const { creationProblem } = evaluate(
+    "../src/domains/game-creation/creationRequest.ts",
+    {},
+  );
+  const members = [
+    { id: "123", name: "Owner" },
+    { id: "456", name: "Friend" },
+  ];
+  assert.equal(creationProblem("Runde", ["123", "456"], members, "123"), "");
+  for (const ids of [[], ["456"], ["123", "123"], ["123", "789"]]) {
+    assert.notEqual(creationProblem("Runde", ids, members, "123"), "");
+  }
+  for (const title of [
+    " ",
+    "x".repeat(61),
+    "@everyone",
+    "Runde\nneu",
+    "Runde/neu",
+    "Runde#neu",
+    "Runde`neu",
+    "Runde\\neu",
+    "Runde\u0085neu",
+  ]) {
+    assert.notEqual(creationProblem(title, ["123"], members, "123"), "");
+  }
+});
+
+test("correcting rejected creation data preserves its original request identity", () => {
+  const api = evaluate("../src/domains/game-creation/creationRequest.ts", {});
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const original = {
+    requestId: "c".repeat(64),
+    title: "Alte Angaben",
+    memberIds: ["123", "456"],
+  };
+  api.saveCreationRequest(storage, "123", original);
+  const corrected = { ...original, title: "Neue Angaben", memberIds: ["123"] };
+  api.reviseCreationRequest(storage, "123", corrected);
+  assert.equal(
+    api.loadCreationRequest(storage, "123").requestId,
+    original.requestId,
+  );
+  assert.equal(api.loadCreationRequest(storage, "123").title, "Neue Angaben");
+  assert.throws(() =>
+    api.reviseCreationRequest(storage, "123", {
+      ...corrected,
+      requestId: "d".repeat(64),
+    }),
+  );
+});
+
 const { selectionProblem, modalProblem } = evaluate(
   "../src/domains/game-shell/components/InteractionsPanel/interactionContracts.ts",
   {},
@@ -69,14 +159,24 @@ function configuration(env, origin = "https://ti4.example.test", runtime = {}) {
     "../src/config.ts",
     {
       env,
-      window: { location: { origin, protocol: new URL(origin).protocol }, __TI4_WRAPPER_CONFIG__: runtime },
+      window: {
+        location: { origin, protocol: new URL(origin).protocol },
+        __TI4_WRAPPER_CONFIG__: runtime,
+      },
     },
     (text) => text.replaceAll("import.meta.env", "env"),
   ).config;
 }
 test("container supplies only public OAuth settings without changing own-origin APIs", () => {
-  const runtime = { discordClientId: "1234567890", discordRedirectUri: "https://own.example.test/login" };
-  const configured = configuration({ DEV: false, VITE_DISCORD_CLIENT_ID: "build-id" }, "https://own.example.test", runtime);
+  const runtime = {
+    discordClientId: "1234567890",
+    discordRedirectUri: "https://own.example.test/login",
+  };
+  const configured = configuration(
+    { DEV: false, VITE_DISCORD_CLIENT_ID: "build-id" },
+    "https://own.example.test",
+    runtime,
+  );
   assert.equal(configured.api.discordClientId, runtime.discordClientId);
   assert.equal(configured.api.discordRedirectUri, runtime.discordRedirectUri);
   assert.equal(configured.api.botApiUrl, "/api");
@@ -100,9 +200,10 @@ function oauth(now = Date.now()) {
       },
       sessionStorage,
       Date: { now: () => now },
-      require: () => evaluate("../src/utils/secureRandomId.ts", {
-        crypto: { getRandomValues: (bytes) => bytes.fill(0xab) },
-      }),
+      require: () =>
+        evaluate("../src/utils/secureRandomId.ts", {
+          crypto: { getRandomValues: (bytes) => bytes.fill(0xab) },
+        }),
     },
     (text) => text.replace(/^import .*;\r?\n/m, ""),
   );
@@ -151,13 +252,19 @@ test("LAN HTTP creates secure identifiers without crypto.randomUUID", () => {
       },
     },
   });
-  assert.equal(secureRandomId(), Array.from({ length: 32 }, (_, index) =>
-    index.toString(16).padStart(2, "0")).join(""));
+  assert.equal(
+    secureRandomId(),
+    Array.from({ length: 32 }, (_, index) =>
+      index.toString(16).padStart(2, "0"),
+    ).join(""),
+  );
   assert.equal(requestedBytes, 32);
 });
 
 test("secure identifiers fail closed when secure randomness is unavailable", () => {
-  const { secureRandomId } = evaluate("../src/utils/secureRandomId.ts", { crypto: {} });
+  const { secureRandomId } = evaluate("../src/utils/secureRandomId.ts", {
+    crypto: {},
+  });
   assert.throws(() => secureRandomId());
 });
 test("OAuth refuses missing, mismatched and malformed state", () => {

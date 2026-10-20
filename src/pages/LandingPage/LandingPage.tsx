@@ -45,13 +45,21 @@ export default function LandingPage() {
             </Button>
           </div>
         </section>
-        <section className={classes.help} aria-labelledby="getting-started-title">
+        <section
+          className={classes.help}
+          aria-labelledby="getting-started-title"
+        >
           <h2 id="getting-started-title">Noch keine eigene Partie?</h2>
           <p>
-            Die Einrichtung neuer Partien und die Bedienung des vorhandenen
-            Milty-Drafts werden hier noch ergänzt. Bereits angelegte Partien
-            kannst du unter „Meine Partien“ öffnen.
+            Als Administrator kannst du eine Partie mit euren Mitspielern
+            anlegen. Anschließend nutzt du die vorhandenen Einrichtungsschritte,
+            einschließlich Milty-Draft.
           </p>
+          <div className={classes.actions}>
+            <Button component={Link} to="/new-game" variant="default">
+              Neue Partie anlegen
+            </Button>
+          </div>
           <p>
             Beispiel: Nutze für die Anmeldung dasselbe Discord-Konto, dem dein
             Sitz in der Partie gehört. So werden dir deine privaten Karten und

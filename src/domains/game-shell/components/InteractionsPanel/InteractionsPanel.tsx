@@ -60,7 +60,13 @@ async function readResponse<T>(response: Response): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function InteractionsPanel({ gameId }: { gameId: string }) {
+export function InteractionsPanel({
+  gameId,
+  initiallyOpen = false,
+}: {
+  gameId: string;
+  initiallyOpen?: boolean;
+}) {
   const { user } = useUser();
   return (
     <aside className={styles.panel} aria-label="Spielaktionen">
@@ -69,6 +75,7 @@ export function InteractionsPanel({ gameId }: { gameId: string }) {
           key={`${gameId}:${user.discord_id ?? user.id}`}
           gameId={gameId}
           userId={user.discord_id ?? user.id}
+          initiallyOpen={initiallyOpen}
         />
       ) : (
         <details>
@@ -85,8 +92,16 @@ export function InteractionsPanel({ gameId }: { gameId: string }) {
   );
 }
 
-function SeatActions({ gameId, userId }: { gameId: string; userId: string }) {
-  const [open, setOpen] = useState(false);
+function SeatActions({
+  gameId,
+  userId,
+  initiallyOpen,
+}: {
+  gameId: string;
+  userId: string;
+  initiallyOpen: boolean;
+}) {
+  const [open, setOpen] = useState(initiallyOpen);
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
   const [result, setResult] = useState<ActionResult | null>(null);
@@ -153,7 +168,10 @@ function SeatActions({ gameId, userId }: { gameId: string; userId: string }) {
   }
 
   return (
-    <details onToggle={(event) => setOpen(event.currentTarget.open)}>
+    <details
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
       <summary>Deine Aktionen {open && count > 0 ? `(${count})` : ""}</summary>
       <div className={styles.body}>
         <div className={styles.toolbar}>
@@ -182,9 +200,9 @@ function SeatActions({ gameId, userId }: { gameId: string; userId: string }) {
                 {result.modal
                   ? "Das Formular ist bereit. Erst Absenden führt deine Eingaben aus."
                   : result.modalId
-                    ? "Ein Formular wurde geöffnet. Bitte in Discord fortsetzen; das Webformular ist noch nicht angebunden."
+                    ? "Das Originalformular ist hier noch nicht vollständig verfügbar. Eine Formulareingabe wurde noch nicht gesendet."
                     : result.unsupportedCalls?.length
-                      ? "Die Aktion benötigt eine noch nicht unterstützte Interaktion. Bitte den Spielstand prüfen und in Discord fortsetzen."
+                      ? "Diese Eingabe ist hier noch nicht vollständig verfügbar. Bitte den Spielstand prüfen, bevor du erneut handelst."
                       : `Serverantwort: ${result.status}`}
               </p>
               {result.detail && <p>{result.detail}</p>}
