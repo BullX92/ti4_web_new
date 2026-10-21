@@ -65,6 +65,43 @@ test("game creation validates real selected members and owner before submission"
   }
 });
 
+test("mixed creation retains five bots across reload and rejects extra human seats", () => {
+  const api = evaluate("../src/domains/game-creation/creationRequest.ts", {});
+  const members = [
+    { id: "123", name: "Owner" },
+    { id: "456", name: "Friend" },
+  ];
+  assert.equal(
+    api.creationProblem("Agentenrunde", ["123"], members, "123", 5),
+    "",
+  );
+  assert.notEqual(
+    api.creationProblem("Agentenrunde", ["123", "456"], members, "123", 5),
+    "",
+  );
+  assert.notEqual(
+    api.creationProblem("Agentenrunde", ["123"], members, "123", 4),
+    "",
+  );
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const request = {
+    requestId: "f".repeat(64),
+    title: "Agentenrunde",
+    memberIds: ["123"],
+    botCount: 5,
+  };
+  api.saveCreationRequest(storage, "123", request);
+  assert.equal(api.loadCreationRequest(storage, "123").botCount, 5);
+  assert.throws(() =>
+    api.saveCreationRequest(storage, "123", { ...request, botCount: 0 }),
+  );
+});
+
 test("correcting rejected creation data preserves its original request identity", () => {
   const api = evaluate("../src/domains/game-creation/creationRequest.ts", {});
   const values = new Map();

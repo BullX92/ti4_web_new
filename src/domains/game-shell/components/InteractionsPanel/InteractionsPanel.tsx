@@ -1,9 +1,10 @@
 import { useId, useRef, useState, type ChangeEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch, getBotApiUrl } from "@/api/auth";
-import { useUser } from "@/api/auth/useUser";
+import { getLocalSessionRevision, useUser } from "@/api/auth/useUser";
 import { DiscordAuthButton } from "@/domains/auth/DiscordLogin";
 import { secureRandomId } from "@/utils/secureRandomId";
+import { AgentControls } from "./AgentControls";
 import styles from "./InteractionsPanel.module.css";
 import {
   modalProblem,
@@ -73,7 +74,7 @@ export function InteractionsPanel({
     <aside className={styles.panel} aria-label="Spielaktionen">
       {user?.authenticated && user.token ? (
         <SeatActions
-          key={`${gameId}:${user.discord_id ?? user.id}`}
+          key={`${gameId}:${user.discord_id ?? user.id}:${getLocalSessionRevision()}`}
           gameId={gameId}
           userId={user.discord_id ?? user.id}
           initiallyOpen={initiallyOpen}
@@ -175,6 +176,7 @@ function SeatActions({
     >
       <summary>Deine Aktionen {open && count > 0 ? `(${count})` : ""}</summary>
       <div className={styles.body}>
+        <AgentControls gameId={gameId} userId={userId} />
         <div className={styles.toolbar}>
           <span>
             {offers.data?.seat ?? "Dein Sitz"}

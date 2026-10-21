@@ -20,7 +20,11 @@ import { secureRandomId } from "@/utils/secureRandomId";
 import styles from "./GameCreationPage.module.css";
 
 type Member = { id: string; name: string };
-type CreationOptions = { canCreate: boolean; members: Member[] };
+type CreationOptions = {
+  canCreate: boolean;
+  canCreateAgents?: boolean;
+  members: Member[];
+};
 type Operation = {
   requestId: string;
   gameName: string | null;
@@ -103,6 +107,7 @@ function CreationForm({ actorId }: { actorId: string }) {
   );
   const [title, setTitle] = useState("");
   const [selected, setSelected] = useState([actorId]);
+  const [botCount, setBotCount] = useState(0);
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState("");
   const [rejected, setRejected] = useState(false);
@@ -194,6 +199,7 @@ function CreationForm({ actorId }: { actorId: string }) {
       selected,
       options.data.members,
       actorId,
+      botCount,
     );
     if (problem) {
       setNotice(problem);
@@ -203,6 +209,7 @@ function CreationForm({ actorId }: { actorId: string }) {
       requestId: editingId ?? secureRandomId(),
       title: title.trim(),
       memberIds: selected,
+      ...(botCount ? { botCount } : {}),
     };
     try {
       if (editingId) reviseCreationRequest(sessionStorage, actorId, request);
@@ -279,6 +286,7 @@ function CreationForm({ actorId }: { actorId: string }) {
                       setNotice("");
                       setTitle("");
                       setSelected([actorId]);
+                      setBotCount(0);
                       setEditingId(null);
                     } catch {
                       setNotice(
@@ -315,6 +323,7 @@ function CreationForm({ actorId }: { actorId: string }) {
                     onClick={() => {
                       setEditingId(pending.requestId);
                       setTitle(pending.title);
+                      setBotCount(pending.botCount ?? 0);
                       setSelected([
                         actorId,
                         ...pending.memberIds.filter(
@@ -342,6 +351,35 @@ function CreationForm({ actorId }: { actorId: string }) {
         options.data?.canCreate &&
         !options.error && (
           <form onSubmit={submit} className={styles.card}>
+            <fieldset className={styles.members}>
+              <legend>Spieler</legend>
+              <label>
+                <input
+                  type="radio"
+                  name="game-mode"
+                  checked={botCount === 0}
+                  onChange={() => {
+                    setBotCount(0);
+                    setSelected([actorId]);
+                  }}
+                />
+                <span>Menschen aus eurem Discord-Server</span>
+              </label>
+              {options.data.canCreateAgents && (
+                <label>
+                  <input
+                    type="radio"
+                    name="game-mode"
+                    checked={botCount === 5}
+                    onChange={() => {
+                      setBotCount(5);
+                      setSelected([actorId]);
+                    }}
+                  />
+                  <span>Du + 5 Bots · sechs Spieler</span>
+                </label>
+              )}
+            </fieldset>
             <label className={styles.field}>
               Partiename
               <input
@@ -352,32 +390,41 @@ function CreationForm({ actorId }: { actorId: string }) {
                 placeholder="Zum Beispiel: Dienstagsrunde"
               />
             </label>
-            <fieldset className={styles.members}>
-              <legend>Mitspieler · {selected.length} von höchstens 8</legend>
-              {options.data.members.map((member) => (
-                <label key={member.id}>
-                  <input
-                    type="checkbox"
-                    checked={selected.includes(member.id)}
-                    disabled={
-                      member.id === actorId ||
-                      (!selected.includes(member.id) && selected.length >= 8)
-                    }
-                    onChange={(event) =>
-                      setSelected((current) =>
-                        event.target.checked
-                          ? [...current, member.id]
-                          : current.filter((id) => id !== member.id),
-                      )
-                    }
-                  />
-                  <span>
-                    {member.name}
-                    {member.id === actorId ? " (du)" : ""}
-                  </span>
-                </label>
-              ))}
-            </fieldset>
+            {botCount === 5 ? (
+              <p>
+                Du spielst deinen eigenen Sitz. Fünf virtuelle Spieler erhalten
+                eigene Fraktionen und private Karten. Ihre Einrichtung steuerst
+                du mit „Bot-Einzelschritt“. Weitere Spielentscheidungen können
+                noch Unterstützung benötigen.
+              </p>
+            ) : (
+              <fieldset className={styles.members}>
+                <legend>Mitspieler · {selected.length} von höchstens 8</legend>
+                {options.data.members.map((member) => (
+                  <label key={member.id}>
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(member.id)}
+                      disabled={
+                        member.id === actorId ||
+                        (!selected.includes(member.id) && selected.length >= 8)
+                      }
+                      onChange={(event) =>
+                        setSelected((current) =>
+                          event.target.checked
+                            ? [...current, member.id]
+                            : current.filter((id) => id !== member.id),
+                        )
+                      }
+                    />
+                    <span>
+                      {member.name}
+                      {member.id === actorId ? " (du)" : ""}
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+            )}
             <Button type="submit" disabled={!title.trim()}>
               Partie anlegen
             </Button>

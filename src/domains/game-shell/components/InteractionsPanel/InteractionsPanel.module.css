@@ -46,6 +46,16 @@
   justify-content: space-between;
   gap: 8px;
 }
+.agentControls {
+  padding: 8px 0 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #485165;
+}
+.agentControls small,
+.agentSeats {
+  color: #bac4d6;
+  font-size: 12px;
+}
 .toolbar span {
   color: #bac4d6;
   font-size: 12px;

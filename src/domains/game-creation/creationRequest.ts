@@ -2,6 +2,7 @@ export type CreationRequest = {
   requestId: string;
   title: string;
   memberIds: string[];
+  botCount?: number;
 };
 
 type RequestStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -11,7 +12,14 @@ export function creationProblem(
   memberIds: string[],
   members: { id: string; name: string }[],
   actorId: string,
+  botCount = 0,
 ): string {
+  if (
+    botCount !== 0 &&
+    (botCount !== 5 || memberIds.length !== 1 || memberIds[0] !== actorId)
+  ) {
+    return "Die Agentenpartie besteht aus dir und fünf virtuellen Spielern.";
+  }
   if (
     !title.trim() ||
     title.trim().length > 60 ||
@@ -58,7 +66,8 @@ export function loadCreationRequest(
     !Array.isArray(parsed.memberIds) ||
     !parsed.memberIds.every(
       (id: unknown) => typeof id === "string" && /^\d{1,20}$/.test(id),
-    )
+    ) ||
+    ("botCount" in parsed && parsed.botCount !== 0 && parsed.botCount !== 5)
   )
     throw new Error(
       "Der gespeicherte Einrichtungsauftrag kann nicht gelesen werden.",
