@@ -92,6 +92,8 @@ export function AgentControls({
   }
 
   const data = state.data?.gameName === gameId ? state.data : null;
+  const requiresReview =
+    uncertain || data?.status === "UNCERTAIN" || data?.status === "STARTED";
   if (!data && !state.error) return null;
   return (
     <section className={styles.agentControls} aria-label="Virtuelle Spieler">
@@ -115,7 +117,7 @@ export function AgentControls({
       <div className={styles.actions}>
         <button
           type="button"
-          disabled={sending || state.isFetching || uncertain || !data}
+          disabled={sending || state.isFetching || requiresReview || !data}
           onClick={() => void step()}
         >
           {sending ? "Bot verarbeitet …" : "Bot-Einzelschritt"}
@@ -135,7 +137,7 @@ export function AgentControls({
       <div role="status" aria-live="polite">
         {notice && <p>{notice}</p>}
         {state.error && <p>{state.error.message}</p>}
-        {uncertain && (
+        {requiresReview && (
           <p>
             Ein Schritt hat keine eindeutige Bestätigung erhalten. Die Steuerung
             bleibt angehalten; bitte den letzten Vorgang prüfen.
