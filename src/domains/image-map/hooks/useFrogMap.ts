@@ -6,6 +6,6 @@ export function useFrogMap(discordId?: string, mapId?: string) {
     queryKey: ["froggame", discordId, mapId],
     queryFn: () =>
       fetch(`${config.api.frogMapUrl}/${discordId}/${mapId}`).then((res) => res.text()),
-    enabled: Boolean(discordId && mapId),
+    enabled: Boolean(config.api.frogMapUrl && discordId && mapId),
   });
 }

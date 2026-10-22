@@ -1,30 +1,23 @@
-const devConfig = {
+const apiBase = (
+  import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "/bot/api" : "/api")
+).replace(/\/$/, "");
+const socketUrl = new URL("/ws", window.location.origin);
+socketUrl.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+const runtime = window.__TI4_WRAPPER_CONFIG__ ?? {};
+
+export const config = {
   api: {
-    mapsUrl: "https://asyncti4.com/maps.json",
-    proxyMapsUrl: "/proxy/maps.json",
-    frogMapUrl:
-      "https://qw2j1lld43.execute-api.us-east-1.amazonaws.com/Production/frog",
-    discordLoginUrl: "http://localhost:8000/login",
-    discordRedirectUri: "http://localhost:5173/login",
-    gameDataUrl: "/bot/api/public/game",
-    botApiUrl: "/bot/api",
-    websocketUrl: "wss://bot.asyncti4.com/ws",
-    // websocketUrl: "ws://localhost:8081/ws",
+    botApiUrl: apiBase,
+    gameDataUrl: `${apiBase}/public/game`,
+    websocketUrl:
+      import.meta.env.VITE_WEBSOCKET_URL ||
+      (import.meta.env.DEV ? "ws://127.0.0.1:8081/ws" : socketUrl.href),
+    discordClientId: runtime.discordClientId || import.meta.env.VITE_DISCORD_CLIENT_ID || "",
+    discordRedirectUri:
+      runtime.discordRedirectUri || import.meta.env.VITE_DISCORD_REDIRECT_URI ||
+      `${window.location.origin}/login`,
+    mapsUrl: import.meta.env.VITE_MAPS_URL || "/maps.json",
+    proxyMapsUrl: import.meta.env.VITE_MAPS_URL || "/maps.json",
+    frogMapUrl: import.meta.env.VITE_FROG_MAP_URL || "",
   },
 };
-
-const prodConfig = {
-  api: {
-    mapsUrl: "https://asyncti4.com/maps.json",
-    proxyMapsUrl: "/proxy/maps.json",
-    frogMapUrl:
-      "https://qw2j1lld43.execute-api.us-east-1.amazonaws.com/Production/frog",
-    discordLoginUrl: "https://api.asyncti4.com/login",
-    discordRedirectUri: "https://asyncti4.com/login",
-    gameDataUrl: "https://bot.asyncti4.com/api/public/game",
-    botApiUrl: "https://bot.asyncti4.com/api",
-    websocketUrl: "wss://bot.asyncti4.com/ws",
-  },
-};
-
-export const config = import.meta.env.DEV ? devConfig : prodConfig;

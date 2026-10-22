@@ -2,6 +2,46 @@
 
 This is a Twilight Imperium 4 web application built with React, Vite, and TypeScript.
 
+## Eigener lokaler Spielserver
+
+Diese Variante verbindet Spielzustand, Login und Aktionen mit dem eigenen Java-Bot.
+Es gibt keinen automatischen Rückfall auf den offiziellen AsyncTI4-Spielserver.
+
+1. Den eigenen Java-Bot mit API auf `http://127.0.0.1:8081` starten.
+2. `.env.example` nach `.env.local` kopieren. Eigene öffentliche Discord-OAuth-Client-ID
+   in `VITE_DISCORD_CLIENT_ID` eintragen. Niemals ein Client-Secret in VITE-Variablen schreiben.
+3. Im Discord-OAuth-Client `http://localhost:5173/login` als Redirect registrieren.
+   Beim Java-Bot denselben Wert als `DISCORD_REDIRECT_URI` konfigurieren.
+4. `npm ci` und `npm run dev` ausführen.
+   Die Oberfläche über `http://localhost:5173` öffnen.
+
+Entwicklung: `/bot/api` wird durch Vite an den eigenen Bot weitergeleitet.
+Für Produktion ohne VITE-Overrides verwendet die App `/api` und `/ws` auf derselben
+Domain. Der Reverse Proxy muss beide Pfade zum eigenen Java-Bot weiterleiten.
+In der Produktion `VITE_API_URL` und `VITE_WEBSOCKET_URL` aus dem lokalen Beispiel
+entfernen oder ausdrücklich auf das eigene Ziel setzen.
+
+Das Panel **Deine Aktionen** lädt Angebote nur nach Anmeldung und Öffnen.
+Es sendet ausschließlich das angebotene Aktionstoken und eine Request-ID.
+Veraltete Angebote werden neu geladen. Angebotene Auswahllisten und Textformulare
+können bestätigt werden; Anzahl, Pflichtfelder und Textlängen werden vor dem Senden
+geprüft. Veraltete Formulare behalten ihre Eingaben und lassen sich ohne Absenden schließen.
+Nicht unterstützte Interaktionen bleiben ausdrücklich offene Schritte.
+Private Daten werden nicht auf die
+öffentlichen Websocket-Themen geschrieben.
+
+Der optionale Kartenindex `/maps.json` muss selbst bereitgestellt werden;
+**Meine Spiele** verwendet die authentifizierte API des eigenen Bots.
+Ein FoW-Bildanbieter wird nur genutzt, wenn `VITE_FROG_MAP_URL` ausdrücklich gesetzt ist.
+Grafiken und statische Spieldaten bleiben von den Spielserver-URLs getrennt.
+Ein erfolgreicher Build ersetzt keinen Nachweis mit einer echten Partie.
+
+Prüfung: `node --test scripts/check-own-wrapper.mjs` kontrolliert eigene Endpunkte
+und OAuth-State inklusive Ablauf und Wiederverwendung sowie Select-/Formulargrenzen.
+`scripts/browser-own-wrapper.js` und `scripts/browser-components.js` sind
+Playwright-CLI-Prüfabläufe mit abgefangenen lokalen HTTP-Testantworten für
+das Aktionenpanel; diese Testantworten beweisen keinen echten Spielzug.
+
 ## Tech Stack
 
 - **React 18** - UI framework

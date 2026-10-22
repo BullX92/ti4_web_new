@@ -5,6 +5,7 @@ const AUTH_VERSION = "v1";
 const AUTH_VERSION_KEY = "auth_version";
 const USER_STORAGE_KEY = "user";
 const AUTH_CHANGE_EVENT = "auth-change";
+const SESSION_STORAGE_KEY = "auth_session";
 
 export type LocalUser = {
   id: string;
@@ -34,13 +35,19 @@ function emitAuthChange(): void {
 }
 
 export function setLocalUser(user: LocalUser): void {
+  localStorage.setItem(SESSION_STORAGE_KEY, uuidv4());
   localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
   emitAuthChange();
 }
 
 export function clearLocalUser(): void {
+  localStorage.setItem(SESSION_STORAGE_KEY, uuidv4());
   localStorage.removeItem(USER_STORAGE_KEY);
   emitAuthChange();
+}
+
+export function getLocalSessionRevision(): string | null {
+  return localStorage.getItem(SESSION_STORAGE_KEY);
 }
 
 function createAnonymousUser(): LocalUser {

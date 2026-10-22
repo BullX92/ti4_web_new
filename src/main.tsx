@@ -45,6 +45,10 @@ const router = createBrowserRouter([
       import("./pages/GamesPage").then((m) => ({ Component: m.default })),
   },
   {
+    path: "/new-game",
+    lazy: () => import("./pages/GameCreationPage").then((m) => ({ Component: m.default })),
+  },
+  {
     path: "/dashboard",
     lazy: () =>
       import("./pages/DashboardPage").then((m) => ({ Component: m.default })),
