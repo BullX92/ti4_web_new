@@ -91,6 +91,37 @@ export function AgentControls({
     }
   }
 
+  async function setRunning(enabled: boolean) {
+    if (guard.current) return;
+    guard.current = true;
+    setSending(true);
+    const revision = getLocalSessionRevision();
+    try {
+      const result = await readState(
+        await authenticatedFetch(`${endpoint}/run`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled }),
+        }),
+      );
+      if (revision !== getLocalSessionRevision()) return;
+      if (!result || result.gameName !== gameId)
+        throw new Error("Keine passende Bestätigung erhalten.");
+      queryClient.setQueryData(key, result);
+      setNotice(result.detail ?? "Botsteuerung aktualisiert.");
+    } catch (error) {
+      if (revision === getLocalSessionRevision())
+        setNotice(
+          error instanceof Error
+            ? error.message
+            : "Botsteuerung nicht erreichbar.",
+        );
+    } finally {
+      guard.current = false;
+      if (revision === getLocalSessionRevision()) setSending(false);
+    }
+  }
+
   const data = state.data?.gameName === gameId ? state.data : null;
   const requiresReview =
     uncertain || data?.status === "UNCERTAIN" || data?.status === "STARTED";
@@ -117,7 +148,20 @@ export function AgentControls({
       <div className={styles.actions}>
         <button
           type="button"
-          disabled={sending || state.isFetching || requiresReview || !data}
+          disabled={sending || !data || (data.paused && requiresReview)}
+          onClick={() => void setRunning(data?.paused ?? true)}
+        >
+          {data?.paused ? "Bots automatisch starten" : "Bots pausieren"}
+        </button>
+        <button
+          type="button"
+          disabled={
+            sending ||
+            state.isFetching ||
+            requiresReview ||
+            !data ||
+            !data.paused
+          }
           onClick={() => void step()}
         >
           {sending ? "Bot verarbeitet …" : "Bot-Einzelschritt"}
@@ -145,8 +189,9 @@ export function AgentControls({
         )}
       </div>
       <small>
-        Ein Klick bearbeitet höchstens eine Botentscheidung. Dein eigener Sitz
-        bleibt bei dir.
+        Automatische Bots wählen selbst und führen einfache Expansionen aus.
+        Dein eigener Sitz bleibt bei dir. Bei unklaren Ergebnissen halten die
+        Bots an.
       </small>
     </section>
   );
